@@ -13,6 +13,7 @@ float time = 0;
 void setup(){
   size(1600, 900);
   background(255);
+  rectMode(CENTER);
   ranNum = (int)random(8, 13);//random number from 8 to 12(number of image)
   
   //load images
@@ -40,8 +41,14 @@ void setup(){
 void draw(){
   background(255);
   //if you complete minigame, the timer is stop
-  if(arrows.length != 0){
+  //time limit is 3 seconds
+  if(arrows.length != 0 && time <= 3){
     time += 0.01;
+  }
+  
+  if(time <= 3){
+  fill(255, 0, 0);
+  rect(width/2, 800, 600 - 200*time, 100);
   }
   
   //shows image from last index of array, because the array is kind of stack.
