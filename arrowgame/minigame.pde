@@ -1,4 +1,5 @@
 PImage up, down, left, right;
+PImage clear, fail;
 
 PImage[] arrows;
 
@@ -21,6 +22,7 @@ void setup(){
   down = loadImage("down.png");
   left = loadImage("left.png");
   right = loadImage("right.png");
+  clear = loadImage("clear.png");
 
   //make array of arrow images and each index has random arrow
   arrows = new PImage[ranNum];
@@ -46,6 +48,7 @@ void draw(){
     time += 0.01;
   }
   
+  //timer
   if(time <= 3){
   fill(255, 0, 0);
   rect(width/2, 800, 600 - 200*time, 100);
@@ -64,6 +67,10 @@ void draw(){
   //when you don't make it in time
   if(time > 3){
     println("task fail");
+  }
+  
+  if(arrows.length == 0){
+    image(clear, 650, 250, 300, 300);
   }
 }
 
