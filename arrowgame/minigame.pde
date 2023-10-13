@@ -15,6 +15,7 @@ void setup(){
   size(1600, 900);
   background(255);
   rectMode(CENTER);
+  imageMode(CENTER);
   ranNum = (int)random(8, 13);//random number from 8 to 12(number of image)
   
   //load images
@@ -23,6 +24,7 @@ void setup(){
   left = loadImage("left.png");
   right = loadImage("right.png");
   clear = loadImage("clear.png");
+  fail = loadImage("fail.png");
 
   //make array of arrow images and each index has random arrow
   arrows = new PImage[ranNum];
@@ -52,6 +54,9 @@ void draw(){
   if(time <= 3){
   fill(255, 0, 0);
   rect(width/2, 800, 600 - 200*time, 100);
+  fill(0);
+  textSize(50);
+  text("Timer", width/2 - textWidth("Timer")/2, 700);
   }
   
   //shows image from last index of array, because the array is kind of stack.
@@ -67,10 +72,14 @@ void draw(){
   //when you don't make it in time
   if(time > 3){
     println("task fail");
+    image(fail, width/2, height/2, 300, 300);
+    textSize(50);
+    fill(0);
+    text("Fail", width/2 - textWidth("Fail")/2, 700);
   }
   
   if(arrows.length == 0){
-    image(clear, 650, 250, 300, 300);
+    image(clear, width/2, height/2, 300, 300);
   }
 }
 

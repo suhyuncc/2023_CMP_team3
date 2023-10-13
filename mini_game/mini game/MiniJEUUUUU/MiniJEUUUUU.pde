@@ -7,6 +7,7 @@ void setup() {
   noFill();
   rectMode(CENTER);
   ellipseMode(CENTER);
+  imageMode(CENTER);
 
   sunflower = loadImage("sunflower.png");
   bui = loadImage("bui.png");
@@ -67,6 +68,7 @@ PImage getRandomImage() {
       return feuille;
   }
   return sunflower; 
+}
 
 boolean isOverlapping(float x, float y, PImage selectedImage) {
   for (ImageElement img : images) {
