@@ -5,6 +5,7 @@ boolean LightOn;
 
 LowBettery bettery;
 Player player;
+Collider collider;
 
 float light_dis;
 float value = 0;
@@ -19,6 +20,8 @@ void setup(){
   
   size(1000,800);
   background(255);
+  image(map_image, 100, 0, 800, 800);
+  collider = new Collider();
   pg = createGraphics(500, 500); 
 }
 
@@ -35,10 +38,12 @@ void draw(){
     rect(400, 580 - (2.8 * value), 600, 580);
   }else{
     background(255);
+    imageMode(CORNER);
     image(map_image, 100, 0, 800, 800);
-    image(player.p_image, player.pos_x, player.pos_y, 50, 50);
-    FlashLight();
-    light_dis -= 0.1;
+    imageMode(CENTER);
+    image(player.p_image, player.pos_x, player.pos_y, 40, 40);
+    //FlashLight();
+    //light_dis -= 0.1;
   }
   
 }
@@ -76,16 +81,20 @@ void keyPressed(){
   if(key == 'l'){
     light_dis = 100;
   }
-  if(keyCode == RIGHT){
+  if(keyCode == RIGHT && 
+  !collider.walls[int(player.pos_x) + 5 + int(player.pos_y) * width]){
     player.GoRight();
   }
-  else if(keyCode == LEFT){
+  else if(keyCode == LEFT &&
+  !collider.walls[int(player.pos_x) - 5 + int(player.pos_y) * width]){
     player.GoLeft();
   }
-  else if(keyCode == UP){
+  else if(keyCode == UP &&
+  !collider.walls[int(player.pos_x) + (int(player.pos_y) - 15) * width]){
     player.GoUp();
   }
-  else if(keyCode == DOWN){
+  else if(keyCode == DOWN &&
+  !collider.walls[int(player.pos_x) + (int(player.pos_y) + 15) * width]){
     player.GoDown();
   }
 }
@@ -99,4 +108,9 @@ void mouseMoved() {
       value = 0;
     }
   }
+}
+
+void mousePressed(){
+  println(int(mouseX) , int(mouseY));
+  println(collider.walls[int(mouseX) + int(mouseY) * width]);
 }

@@ -6,8 +6,8 @@ class Player{
   
   Player(){
     p_image = loadImage("캐릭터_정면_1.png");
-    pos_x = 140;
-    pos_y = 720;
+    pos_x = 160;
+    pos_y = 740;
     speed = 5;
   }
   
