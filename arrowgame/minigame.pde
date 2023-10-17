@@ -4,6 +4,7 @@ PImage clear, fail;
 PImage[] arrows;
 
 int curIdx;
+int count;
 
 //ranNum for set arrays length randomly
 int ranNum = 0;
@@ -11,8 +12,10 @@ int ranNum = 0;
 //time value is for time limits in minigame
 float time = 0;
 
+float arrow_pos;
+
 void setup(){
-  size(1600, 900);
+  size(1000, 800);
   background(255);
   rectMode(CENTER);
   imageMode(CENTER);
@@ -39,11 +42,13 @@ void setup(){
   //setting curIdx as last index of array because I draw images in array from
   //last to first
   curIdx = arrows.length - 1;
-  println(curIdx);
+  
+  arrow_pos = width / (arrows.length + 1);
+  count = 0;
 }
 
 void draw(){
-  background(255);
+  background(70);
   //if you complete minigame, the timer is stop
   //time limit is 3 seconds
   if(arrows.length != 0 && time <= 3){
@@ -66,12 +71,12 @@ void draw(){
   //from last index to first index
   for(int i = arrows.length - 1; i >= 0; i--){
     //I set images position of X like below to make them locate on the center.
-    image(arrows[i], width - (850 - arrows.length * 50) - 100*i , 100, 50, 50);
+    image(arrows[i], width - (arrow_pos * (i + 1)), 100, 30, 30);
   }
   
   //when you don't make it in time
   if(time > 3){
-    println("task fail");
+    //println("task fail");
     image(fail, width/2, height/2, 300, 300);
     textSize(50);
     fill(0);

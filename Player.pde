@@ -12,11 +12,7 @@ class Player{
   }
   
   void GoRight(){
-    float newX = pos_x;
-    newX += 5;
-    //float pos_s = pos_x;
-    //pos_x = lerp(pos_s,pos_s+150,0.1);
-    pos_x = newX;
+    pos_x += speed;
   }
   
   void GoLeft(){
