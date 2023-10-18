@@ -1,5 +1,6 @@
 class Ghost{
   PImage p_image;
+
   float start_x[] = {500, 500, 10, 990};
   float start_y[] = {10, 790, 400, 400};
   float pos_x;
@@ -15,7 +16,6 @@ class Ghost{
   }
   
   void follow(float p_x, float p_y){
-    
     float dx = p_x - pos_x;
     float dy = p_y - pos_y;
     pos_x += dx * speed;

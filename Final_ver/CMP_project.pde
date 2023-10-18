@@ -1,3 +1,8 @@
+import processing.sound.*;
+
+AudioIn input;
+Amplitude analyzer;
+
 PImage map_image;
 PGraphics pg, Arrow_pg;
 
@@ -13,6 +18,12 @@ float light_dis;
 float value = 0;
 
 void setup(){
+  
+  //mic input setup
+  input = new AudioIn(this, 0);
+  input.start();
+  analyzer = new Amplitude(this);
+  analyzer.input(input);
   
   map_image = loadImage("maze.png");
   player = new Player();
@@ -94,9 +105,14 @@ void draw(){
     ghost.follow(player.pos_x,player.pos_y);
     FlashLight();
     light_dis -= 0.016;
+    float vol = analyzer.analyze();
     if(dist(player.pos_x, player.pos_y, ghost.pos_x, ghost.pos_y) < 20){
       ghost = new Ghost();
       OnGhost = true;
+    }
+    else if(dist(player.pos_x, player.pos_y, ghost.pos_x, ghost.pos_y) < light_dis &&
+    vol * 100 > 3){
+      ghost = new Ghost();
     }
   }
   
