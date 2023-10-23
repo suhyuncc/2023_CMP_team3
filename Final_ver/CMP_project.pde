@@ -4,34 +4,46 @@ AudioIn input;
 Amplitude analyzer;
 
 PImage map_image;
-PGraphics pg, Arrow_pg;
+PGraphics pg, Arrow_pg, Wall_pg;
+PFont horrorFont;
 
-boolean LightOn, OnGhost;
+boolean LightOn, OnGhost, GameStart, OnWall, Pause;
 
 LowBettery bettery;
 Player player;
 Collider collider;
 Ghost ghost;
 ArrowGame arrowGame;
+WallGame wallGame;
+Button playButton, quitButton, restartButton;
 
 float light_dis;
 float value = 0;
 
 void setup(){
   
-  //mic input setup
   input = new AudioIn(this, 0);
   input.start();
   analyzer = new Amplitude(this);
   analyzer.input(input);
   
+  horrorFont = createFont("Arial", 32);
   map_image = loadImage("maze.png");
+  
   player = new Player();
   bettery = new LowBettery();
   ghost = new Ghost();
   arrowGame = new ArrowGame();
+  wallGame = new WallGame();
+  playButton = new Button(width/2, height/2 + 60, 250, 80, "Play");
+  quitButton = new Button(width/2, height/2 + 160, 250, 80, "Quit");
+  restartButton = new Button(width/2, height/2 + 300, 250, 80, "ReStart");
+  
   LightOn = false;
   OnGhost = false;
+  GameStart = false;
+  OnWall = false;
+  Pause = false;
   light_dis = 100;
   
   size(1000,800);
@@ -40,10 +52,43 @@ void setup(){
   collider = new Collider();
   pg = createGraphics(500, 500);
   Arrow_pg = createGraphics(1000, 800);
+  Wall_pg = createGraphics(500, 500);
 }
 
 void draw(){
-  if(light_dis < 0){
+  if(!GameStart){
+    player.speed = 0;
+    ghost.speed = 0;
+    background(0);
+    textAlign(CENTER, CENTER);
+    
+    fill(255, 0, 0);
+    textSize(32);
+    text("Escaping The Shadows!!", width/2, 230 + random(-2, 2));
+  
+    playButton.display();
+    quitButton.display();
+  
+    playButton.hoverEffect();
+    quitButton.hoverEffect();
+  }
+  else if(Pause){
+    player.speed = 0;
+    ghost.speed = 0;
+    background(0);
+    textAlign(CENTER, CENTER);
+    
+    fill(255, 0, 0);
+    textSize(32);
+    text("Pause!!", width/2, 230 + random(-2, 2));
+  
+    restartButton.display();
+    quitButton.display();
+  
+    restartButton.hoverEffect();
+    quitButton.hoverEffect();
+  }
+  else if(light_dis < 0){
     player.speed = 0;
     ghost.speed = 0;
     bettery.drawPage();
@@ -71,7 +116,7 @@ void draw(){
       rect(width/2, 800, 600 - 200 * arrowGame.time, 100);
       fill(0);
       textSize(50);
-      text("Timer", width/2 - textWidth("Timer")/2, 700);
+      text("Timer", width/2, 700);
     }
     
     for(int i = arrowGame.arrows.length - 1; i >= 0; i--){
@@ -83,18 +128,37 @@ void draw(){
     if(arrowGame.time > 3){
       image(arrowGame.fail, width/2, height/2, 300, 300);
       textSize(50);
-      fill(0);
-      text("Fail", width/2 - textWidth("Fail")/2, 700);
+      fill(255,0,0);
+      text("Fail", width/2, 600);
+      
+      restartButton.display();
+      restartButton.hoverEffect();
     }
   
     if(arrowGame.arrows.length == 0){
-      player.speed = 5;
-      ghost.speed = 0.01;
       OnGhost = false;
       arrowGame = new ArrowGame();
     }
   }
+  else if(OnWall){
+    player.speed = 0;
+    ghost.speed = 0;
+    background(0);
+    wallGame.drawWallGame();
+    image(Wall_pg, 500, 400);
+    
+    for (ImageElement img : wallGame.images) {
+      img.display();
+    }
+    
+    if (wallGame.images.size() == 0) {
+      OnWall = false;
+      wallGame = new WallGame();
+    }
+  }
   else{
+    player.speed = 5;
+    ghost.speed = 0.01;
     background(255);
     imageMode(CORNER);
     image(map_image, 100, 0, 800, 800);
@@ -148,12 +212,22 @@ void FlashLight(){
 }
 
 void keyPressed(){
-  if(key == 'l'){
-    light_dis = 100;
+  if(key == 'p'){
+    if(!Pause){
+      quitButton = new Button(width/2, height/2 + 160, 250, 80, "Quit");
+      restartButton = new Button(width/2, height/2 + 60, 250, 80, "ReStart");
+      Pause = true;
+    }
+    else{
+      Pause = false;
+    }
   }
   if(keyCode == RIGHT){
     if(!collider.walls[int(player.pos_x) + 5 + int(player.pos_y) * width]){
       player.GoRight();
+    }
+    else{
+      OnWall = true;
     }
     
   }
@@ -161,17 +235,26 @@ void keyPressed(){
     if(!collider.walls[int(player.pos_x) - 5 + int(player.pos_y) * width]){
       player.GoLeft();
     }
+    else{
+      OnWall = true;
+    }
     
   }
   else if(keyCode == UP){
     if(!collider.walls[int(player.pos_x) + (int(player.pos_y) - 15) * width]){
       player.GoUp();
     }
+    else{
+      OnWall = true;
+    }
     
   }
   else if(keyCode == DOWN){
     if(!collider.walls[int(player.pos_x) + (int(player.pos_y) + 15) * width]){
       player.GoDown();
+    }
+    else{
+      OnWall = true;
     }
     
   }
@@ -229,14 +312,53 @@ void mouseMoved() {
     value = value + 0.1;
     if (value > 100) {
       light_dis = 100;
-      player.speed = 5;
-      ghost.speed = 0.01;
       value = 0;
     }
   }
 }
 
 void mousePressed(){
-  println(int(mouseX) , int(mouseY));
-  println(collider.walls[int(mouseX) + int(mouseY) * width]);
+  
+  if (mouseButton == LEFT) {
+    if(!GameStart){
+      if (playButton.isMouseOver()) {
+        player = new Player();
+        ghost = new Ghost();
+        GameStart = true;
+      }
+      else if (quitButton.isMouseOver()) {
+        exit();
+      }
+    }
+    else if(OnWall){
+      int indexToRemove = -1;
+      for (int i = wallGame.images.size() - 1; i >= 0; i--) {
+        ImageElement img = wallGame.images.get(i);
+        if (img.contains(mouseX, mouseY)) {
+          indexToRemove = i;
+          break;
+        }
+      }
+      if (indexToRemove >= 0) {
+        wallGame.images.remove(indexToRemove);
+      }
+    }
+    else if(OnGhost){
+      if (restartButton.isMouseOver()) {
+        GameStart = false;
+        OnGhost = false;
+        arrowGame = new ArrowGame();
+      }
+    }
+    else if(Pause){
+      if (restartButton.isMouseOver()) {
+        GameStart = false;
+        Pause = false;
+      }
+      else if (quitButton.isMouseOver()) {
+        exit();
+      }
+    }
+  }
+  
 }
