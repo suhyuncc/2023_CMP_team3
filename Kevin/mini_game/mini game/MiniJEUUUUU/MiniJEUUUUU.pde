@@ -38,7 +38,7 @@ void draw() {
 }
 
 void mousePressed() {
-  if (mouseButton == RIGHT) {
+  if (mouseButton == LEFT) {
     int indexToRemove = -1;
     for (int i = images.size() - 1; i >= 0; i--) {
       ImageElement img = images.get(i);
