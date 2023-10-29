@@ -19,7 +19,7 @@ void setup(){
   background(255);
   rectMode(CENTER);
   imageMode(CENTER);
-  ranNum = (int)random(8, 13);//random number from 8 to 12(number of image)
+  ranNum = (int)random(10, 15);//random number from 10 to 14(number of image)
   
   //load images
   up = loadImage("up.png");
@@ -83,6 +83,7 @@ void draw(){
     text("Fail", width/2 - textWidth("Fail")/2, 700);
   }
   
+  //when you clear the minigame
   if(arrows.length == 0){
     image(clear, width/2, height/2, 300, 300);
   }
@@ -101,7 +102,9 @@ void keyPressed(){
           println(curIdx);
         }
         else{
+          //if player press wrong button, remaning time is reduced
           println("fail");
+          time += 0.1;
         }
       }
         
@@ -115,6 +118,7 @@ void keyPressed(){
         }
         else{
           println("fail");
+          time += 0.1;
         }
       }
         
@@ -129,6 +133,7 @@ void keyPressed(){
         }
         else{
           println("fail");
+          time += 0.1;
         }
       }
     
@@ -143,6 +148,7 @@ void keyPressed(){
         }
         else{
           println("fail");
+          time += 0.1;
         }
       }
     }
