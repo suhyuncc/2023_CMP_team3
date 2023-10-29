@@ -1,13 +1,16 @@
 import processing.sound.*;
+import gab.opencv.*;
+import processing.video.*;
+import java.awt.*;
 
 AudioIn input;
 Amplitude analyzer;
 
-PImage map_image;
+PImage map_image, main_image;
 PGraphics pg, Arrow_pg, Wall_pg;
 PFont horrorFont;
 
-boolean LightOn, OnGhost, GameStart, OnWall, Pause;
+boolean LightOn, OnGhost, GameStart, OnWall, Pause, isGoal, end_lose, end_win;
 
 LowBettery bettery;
 Player player;
@@ -15,10 +18,26 @@ Collider collider;
 Ghost ghost;
 ArrowGame arrowGame;
 WallGame wallGame;
-Button playButton, quitButton, restartButton;
+Button playButton, quitButton, restartButton, s_quitButton, creditButton;
+Goal up_goal, down_goal;
 
 float light_dis;
 float value = 0;
+
+//-----------------------------------------------------------------------------------//
+
+Capture video;
+OpenCV opencv;
+int detectionTimer; // Timer for face detection
+boolean faceDetected; // Flag indicating if a face is currently detected
+int holdDuration = 3 * 20; // 3 seconds (assuming 60 frames per second)
+float movementThreshold = 50; // Adjust the threshold based on your needs
+
+// Variables to store the previous position of the face rectangle
+float prevX, prevY, prevWidth, prevHeight;
+
+// Variables for the enemy (red rectangle)
+float enemyX, enemyY, enemySpeed;
 
 void setup(){
   
@@ -29,30 +48,58 @@ void setup(){
   
   horrorFont = createFont("Arial", 32);
   map_image = loadImage("maze.png");
+  main_image = loadImage("c.jpg");
   
   player = new Player();
   bettery = new LowBettery();
   ghost = new Ghost();
   arrowGame = new ArrowGame();
   wallGame = new WallGame();
-  playButton = new Button(width/2, height/2 + 60, 250, 80, "Play");
+  
+  playButton = new Button(width/5, height/3+400, 200, 80, "Play");
+  s_quitButton = new Button(width/2, height/3+400, 200, 80, "Quit");
+  creditButton = new Button(width * 4 /5, height/3+400, 200, 80, "Credit");
+  
+  
   quitButton = new Button(width/2, height/2 + 160, 250, 80, "Quit");
   restartButton = new Button(width/2, height/2 + 300, 250, 80, "ReStart");
+  
+  up_goal = new Goal(160, 20);
+  down_goal = new Goal(840, 780);
   
   LightOn = false;
   OnGhost = false;
   GameStart = false;
   OnWall = false;
   Pause = false;
+  isGoal = false;
+  end_lose = false;
+  end_win = false;
   light_dis = 100;
   
-  size(1000,800);
+  size(1000, 800, P2D);
   background(255);
   image(map_image, 100, 0, 800, 800);
   collider = new Collider();
   pg = createGraphics(500, 500);
   Arrow_pg = createGraphics(1000, 800);
   Wall_pg = createGraphics(500, 500);
+//-----------------------------------------------------------------------------------//
+
+  video = new Capture(this, 1000, 800, "Camera Sensor OV02C10");
+  // set up OpenCV
+  opencv = new OpenCV(this, 1000, 800);
+  opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
+  video.start();
+  detectionTimer = 0;
+  faceDetected = false;
+  prevX = prevY = prevWidth = prevHeight = 0;
+
+  // Initialize enemy position and speed
+  enemyX = random(width);
+  enemyY = random(height);
+  enemySpeed = 2; // Adjust the speed as needed
+  
 }
 
 void draw(){
@@ -62,15 +109,24 @@ void draw(){
     background(0);
     textAlign(CENTER, CENTER);
     
+    imageMode(CENTER);
+    image(main_image, width/2, height/2);
+    
     fill(255, 0, 0);
-    textSize(32);
-    text("Escaping The Shadows!!", width/2, 230 + random(-2, 2));
-  
+    textSize(70);
+    text("ESCAPING SHADOWS", width/2, 100 + random(-5, 5));
+    
+    // Afficher les boutons
     playButton.display();
-    quitButton.display();
+    s_quitButton.display();
+    creditButton.display();
   
+    // Vérifier si la souris est sur un bouton
     playButton.hoverEffect();
-    quitButton.hoverEffect();
+    s_quitButton.hoverEffect();
+    creditButton.hoverEffect();
+    
+    return;
   }
   else if(Pause){
     player.speed = 0;
@@ -79,8 +135,33 @@ void draw(){
     textAlign(CENTER, CENTER);
     
     fill(255, 0, 0);
-    textSize(32);
+    textSize(70);
     text("Pause!!", width/2, 230 + random(-2, 2));
+  
+    restartButton.display();
+    quitButton.display();
+  
+    restartButton.hoverEffect();
+    quitButton.hoverEffect();
+  }
+  else if(end_lose || end_win){
+    restartButton = new Button(width/2, height/2 + 60, 250, 80, "ReStart");
+    player.speed = 0;
+    ghost.speed = 0;
+    background(0);
+    textAlign(CENTER, CENTER);
+    
+    
+    textSize(70);
+    if(end_lose){
+      fill(255, 0, 0);
+      text("Try Again!!", width/2, 230 + random(-2, 2));
+    }
+    else if(end_win){
+      fill(255);
+      text("Escape!!", width/2, 230 + random(-2, 2));
+    }
+    
   
     restartButton.display();
     quitButton.display();
@@ -156,6 +237,94 @@ void draw(){
       wallGame = new WallGame();
     }
   }
+  else if(isGoal){
+    player.speed = 0;
+    ghost.speed = 0;
+    
+    opencv.loadImage(video);
+    
+    imageMode(CENTER);
+    image(video, width/2, height/2);
+    
+    noFill();
+    stroke(0, 255, 0);
+    strokeWeight(3);
+
+
+    // Detect faces from the video frame
+    Rectangle[] faces = opencv.detect();
+
+    // If no faces are detected, reset the timer
+    if (faces.length == 0) {
+      detectionTimer = 0;
+      faceDetected = false;
+    }
+
+    // Draw a rect around each face
+    for (int i = 0; i < faces.length; i++) {
+      float x = faces[i].x;
+      float y = faces[i].y;
+      float w = faces[i].width;
+      float h = faces[i].height;
+
+      // Check if the movement of the face rectangle is below the threshold
+      if (abs(x - prevX) < movementThreshold && abs(y - prevY) < movementThreshold &&
+        abs(w - prevWidth) < movementThreshold && abs(h - prevHeight) < movementThreshold) {
+        // Update the timer when the movement is below the threshold
+        detectionTimer++;
+        println(detectionTimer);
+      } else {
+        // Reset the timer when the movement is above the threshold
+        detectionTimer = 0;
+      }
+
+      // Draw a rect around each face centered on the face
+      rectMode(CENTER);
+      rect(x + w / 2, y + h / 2, w, h);
+
+      // Update the previous position
+      prevX = x;
+      prevY = y;
+      prevWidth = w;
+      prevHeight = h;
+
+      // Update the flag if a face is detected
+      faceDetected = true;
+    }
+
+    // Draw the enemy (red rectangle)
+    fill(255, 0, 0); // Red fill color
+    rect(enemyX, enemyY, 50, 50); // Adjust the size as needed
+
+    // Update the enemy position
+    if (faceDetected) {
+      // Follow the face
+      float deltaX = prevX - enemyX;
+      float deltaY = prevY - enemyY;
+      float distance = dist(enemyX, enemyY, prevX, prevY);
+      enemyX += (deltaX / distance) * enemySpeed;
+      enemyY += (deltaY / distance) * enemySpeed;
+    }
+
+    // Display the counter on the screen in red
+    fill(255, 0, 0); // Set the fill color to red
+    textSize(24);
+    text("Hold still: " + (holdDuration - detectionTimer) / 20 + " seconds", 120, 30);
+    
+    // If the center of the red rectangle is within the bounds of the face, end the game and print "You Lose"
+    if (faceDetected && enemyX > prevX && enemyX < prevX + prevWidth && enemyY > prevY && enemyY < prevY + prevHeight) {
+      println("You Lose");
+      end_lose = true;
+    }
+
+    // If a face is continuously detected for the hold duration, close the sketch and print "You Win"
+    if (faceDetected && detectionTimer >= holdDuration) {
+      println("You Win");
+      end_win = true;
+    }
+    
+    return;
+  }
   else{
     player.speed = 5;
     ghost.speed = 0.01;
@@ -166,9 +335,11 @@ void draw(){
     image(player.p_image, player.pos_x, player.pos_y, 40, 40);
     imageMode(CENTER);
     image(ghost.p_image, ghost.pos_x, ghost.pos_y, 40, 40);
+    //up_goal.display();
+    //down_goal.display();
     ghost.follow(player.pos_x,player.pos_y);
     FlashLight();
-    light_dis -= 0.016;
+    light_dis -= 0.061;
     float vol = analyzer.analyze();
     if(dist(player.pos_x, player.pos_y, ghost.pos_x, ghost.pos_y) < 20){
       ghost = new Ghost();
@@ -178,6 +349,14 @@ void draw(){
     vol * 100 > 3){
       ghost = new Ghost();
     }
+    else if(dist(player.pos_x, player.pos_y, up_goal.pos_x, up_goal.pos_y) < 40){
+      isGoal = true;
+    }
+    else if(dist(player.pos_x, player.pos_y, down_goal.pos_x, down_goal.pos_y) < 40){
+      isGoal = true;
+    }
+    
+    return;
   }
   
 }
@@ -222,6 +401,13 @@ void keyPressed(){
       Pause = false;
     }
   }
+  else if(key == 'c'){
+    isGoal = true;
+  }
+  else if(key == 'l'){
+    light_dis = -1.0;
+  }
+  
   if(keyCode == RIGHT){
     if(!collider.walls[int(player.pos_x) + 5 + int(player.pos_y) * width]){
       player.GoRight();
@@ -313,6 +499,7 @@ void mouseMoved() {
     if (value > 100) {
       light_dis = 100;
       value = 0;
+      ghost = new Ghost();
     }
   }
 }
@@ -324,9 +511,17 @@ void mousePressed(){
       if (playButton.isMouseOver()) {
         player = new Player();
         ghost = new Ghost();
+        light_dis = 100;
         GameStart = true;
+        LightOn = false;
+        OnGhost = false;
+        OnWall = false;
+        Pause = false;
+        isGoal = false;
+        end_lose = false;
+        end_win = false;
       }
-      else if (quitButton.isMouseOver()) {
+      else if (s_quitButton.isMouseOver()) {
         exit();
       }
     }
@@ -359,6 +554,19 @@ void mousePressed(){
         exit();
       }
     }
+    else if(end_lose || end_win){
+      if (restartButton.isMouseOver()) {
+        GameStart = false;
+        Pause = false;
+      }
+      else if (quitButton.isMouseOver()) {
+        exit();
+      }
+    }
   }
   
+}
+
+void captureEvent(Capture c) {
+  c.read();
 }

@@ -17,6 +17,7 @@ class Button {
     } else {
       fill(255, 165, 0); // Orange
     }
+    noStroke();
     rectMode(CENTER);
     rect(x, y, w, h, 7);
     fill(0);
