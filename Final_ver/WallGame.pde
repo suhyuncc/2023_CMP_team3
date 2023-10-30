@@ -51,7 +51,7 @@ class WallGame{
     for (ImageElement img : images) {
       float d = dist(x, y, img.x, img.y);
       if (d < (selectedImage.width / 2 + img.img.width / 2)) {
-        return true; // Les images se chevauchent
+        return true; // Images overlap
       }
     }
     return false;
@@ -59,21 +59,18 @@ class WallGame{
   
   //spawn images and add on array
   void spawnImages(int numImages) {
+    
     for (int i = 0; i < numImages; i++) {
+      
       PImage selectedImage = getRandomImage();
       float x, y;
+      
       do {
         x = random(300 + selectedImage.width / 2, 700 - selectedImage.width / 2);
         y = random(300 + selectedImage.height / 2, 600 - selectedImage.height / 2);
       } while (isOverlapping(x, y, selectedImage));
+      
       images.add(new ImageElement(selectedImage, x, y));
     }
-}
-  
-  
-  
-  
-  
-  
-  
+  }  
 }

@@ -88,7 +88,10 @@ void setup(){
   Wall_pg = createGraphics(500, 500);
 //-----------------------------------------------------------------------------------//
 
+  //use under second code when your processing error
   video = new Capture(this, 1000, 800, "Camera Sensor OV02C10");
+  //video = new Capture(this, 1000, 800);
+  
   // set up OpenCV
   opencv = new OpenCV(this, 1000, 800);
   opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
@@ -105,6 +108,7 @@ void setup(){
 }
 
 void draw(){
+  //Show main page when game start
   if(!GameStart){
     player.speed = 0;
     ghost.speed = 0;
