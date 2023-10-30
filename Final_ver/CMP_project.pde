@@ -26,6 +26,8 @@ float value = 0;
 
 //-----------------------------------------------------------------------------------//
 
+//Goal Game
+
 Capture video;
 OpenCV opencv;
 int detectionTimer; // Timer for face detection
@@ -116,18 +118,19 @@ void draw(){
     textSize(70);
     text("ESCAPING SHADOWS", width/2, 100 + random(-5, 5));
     
-    // Afficher les boutons
+    // Display buttons
     playButton.display();
     s_quitButton.display();
     creditButton.display();
   
-    // Vérifier si la souris est sur un bouton
+    //MouseOver effect on button
     playButton.hoverEffect();
     s_quitButton.hoverEffect();
     creditButton.hoverEffect();
     
     return;
   }
+  // Show Pause page
   else if(Pause){
     player.speed = 0;
     ghost.speed = 0;
@@ -144,8 +147,12 @@ void draw(){
     restartButton.hoverEffect();
     quitButton.hoverEffect();
   }
+  
+  //Show final page after game
   else if(end_lose || end_win){
+    //reposition Button
     restartButton = new Button(width/2, height/2 + 60, 250, 80, "ReStart");
+    
     player.speed = 0;
     ghost.speed = 0;
     background(0);
@@ -169,6 +176,8 @@ void draw(){
     restartButton.hoverEffect();
     quitButton.hoverEffect();
   }
+  
+  //Show charging game page when Flash light's battery over
   else if(light_dis < 0){
     player.speed = 0;
     ghost.speed = 0;
@@ -181,6 +190,8 @@ void draw(){
     fill(0,255,0);
     rect(400, 580 - (2.8 * value), 600, 580);
   }
+  
+  //Show arrowgame when meet ghost
   else if(OnGhost){
     player.speed = 0;
     ghost.speed = 0;
@@ -221,6 +232,8 @@ void draw(){
       arrowGame = new ArrowGame();
     }
   }
+  
+  //show clash mini game when player collide on the wall
   else if(OnWall){
     player.speed = 0;
     ghost.speed = 0;
@@ -335,8 +348,6 @@ void draw(){
     image(player.p_image, player.pos_x, player.pos_y, 40, 40);
     imageMode(CENTER);
     image(ghost.p_image, ghost.pos_x, ghost.pos_y, 40, 40);
-    //up_goal.display();
-    //down_goal.display();
     ghost.follow(player.pos_x,player.pos_y);
     FlashLight();
     light_dis -= 0.061;
@@ -361,6 +372,7 @@ void draw(){
   
 }
 
+// Working feature like flashlight on game
 void FlashLight(){
   loadPixels();
   for (int y = 0; y < height; y++ ) {
@@ -391,6 +403,7 @@ void FlashLight(){
 }
 
 void keyPressed(){
+  // push 'p' open 'pause page'
   if(key == 'p'){
     if(!Pause){
       quitButton = new Button(width/2, height/2 + 160, 250, 80, "Quit");
@@ -401,13 +414,14 @@ void keyPressed(){
       Pause = false;
     }
   }
-  else if(key == 'c'){
-    isGoal = true;
-  }
-  else if(key == 'l'){
-    light_dis = -1.0;
-  }
+  //else if(key == 'c'){
+  //  isGoal = true;
+  //}
+  //else if(key == 'l'){
+  //  light_dis = -1.0;
+  //}
   
+  //move player using Arrowkey
   if(keyCode == RIGHT){
     if(!collider.walls[int(player.pos_x) + 5 + int(player.pos_y) * width]){
       player.GoRight();
@@ -494,6 +508,7 @@ void keyPressed(){
 }
 
 void mouseMoved() {
+  // when flashlight's bettery over charge bettery to move mouse
   if(light_dis < 0){
     value = value + 0.1;
     if (value > 100) {
@@ -511,6 +526,8 @@ void mousePressed(){
       if (playButton.isMouseOver()) {
         player = new Player();
         ghost = new Ghost();
+        
+        //Initilize for after second time's play
         light_dis = 100;
         GameStart = true;
         LightOn = false;

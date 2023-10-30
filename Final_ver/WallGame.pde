@@ -1,4 +1,5 @@
 class WallGame{
+  
   PImage sunflower, bui, arbre, feuille;
   ArrayList<ImageElement> images = new ArrayList<ImageElement>();
   float scaleFactor = 0.1; 
@@ -17,6 +18,7 @@ class WallGame{
     spawnImages(10); 
   }
   
+  //Display Game page
   void drawWallGame(){
     
     Wall_pg.beginDraw();
@@ -25,43 +27,47 @@ class WallGame{
     Wall_pg.textAlign(CENTER);
     Wall_pg.text("Clash!!",250,60);
     Wall_pg.endDraw();
+    
   }
   
+  //set image randomly
   PImage getRandomImage() {
-  int imgIndex = int(random(4));
-  switch (imgIndex) {
-    case 0:
-      return sunflower;
-    case 1:
-      return bui;
-    case 2:
-      return arbre;
-    case 3:
-      return feuille;
-  }
-  return sunflower; 
-}
-
-boolean isOverlapping(float x, float y, PImage selectedImage) {
-  for (ImageElement img : images) {
-    float d = dist(x, y, img.x, img.y);
-    if (d < (selectedImage.width / 2 + img.img.width / 2)) {
-      return true; // Les images se chevauchent
+    int imgIndex = int(random(4));
+      switch (imgIndex) {
+        case 0:
+          return sunflower;
+        case 1:
+          return bui;
+        case 2:
+          return arbre;
+        case 3:
+          return feuille;
     }
+    return sunflower; 
   }
-  return false;
-}
 
-void spawnImages(int numImages) {
-  for (int i = 0; i < numImages; i++) {
-    PImage selectedImage = getRandomImage();
-    float x, y;
-    do {
-      x = random(300 + selectedImage.width / 2, 700 - selectedImage.width / 2);
-      y = random(300 + selectedImage.height / 2, 600 - selectedImage.height / 2);
-    } while (isOverlapping(x, y, selectedImage));
-    images.add(new ImageElement(selectedImage, x, y));
+  // checking image overlap
+  boolean isOverlapping(float x, float y, PImage selectedImage) {
+    for (ImageElement img : images) {
+      float d = dist(x, y, img.x, img.y);
+      if (d < (selectedImage.width / 2 + img.img.width / 2)) {
+        return true; // Les images se chevauchent
+      }
+    }
+    return false;
   }
+  
+  //spawn images and add on array
+  void spawnImages(int numImages) {
+    for (int i = 0; i < numImages; i++) {
+      PImage selectedImage = getRandomImage();
+      float x, y;
+      do {
+        x = random(300 + selectedImage.width / 2, 700 - selectedImage.width / 2);
+        y = random(300 + selectedImage.height / 2, 600 - selectedImage.height / 2);
+      } while (isOverlapping(x, y, selectedImage));
+      images.add(new ImageElement(selectedImage, x, y));
+    }
 }
   
   

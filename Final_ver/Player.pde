@@ -14,18 +14,22 @@ class Player{
     speed = 5;
   }
   
+  //move player right
   void GoRight(){
     pos_x += speed;
   }
   
+  //move player left
   void GoLeft(){
     pos_x -= speed;
   }
   
+  //move player up
   void GoUp(){
     pos_y -= speed;
   }
   
+  //move player down
   void GoDown(){
     pos_y += speed;
   }

@@ -10,11 +10,15 @@ class Ghost{
   Ghost(){
     int ran = int(random(4));
     p_image = loadImage("ghost.png");
+    
+    // random spawn points
     pos_x = start_x[ran];
     pos_y = start_y[ran];
+    
     speed = 0.01;
   }
   
+  // following player
   void follow(float p_x, float p_y){
     float dx = p_x - pos_x;
     float dy = p_y - pos_y;
