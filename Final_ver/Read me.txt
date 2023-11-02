@@ -1,0 +1,5 @@
+Github URL: https://github.com/suhyuncc/2023_CMP_team3.git
+
+- "CMP_project.pde" is main file.
+- When your camera didn't work, use 
+"video = new Capture(this, 1000, 800);" this code on line 93 in "CMP_project"
